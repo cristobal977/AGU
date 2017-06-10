@@ -6,11 +6,10 @@ import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
+import java.io.PrintWriter;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -50,6 +49,7 @@ public class Principal extends JFrame {
         try {
             leerArchivo();
             setTabla(agregarLista());
+            totalGastado();
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(null, ex);
         }
@@ -59,7 +59,6 @@ public class Principal extends JFrame {
 
         this.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         this.setTitle("Home");
-        setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
 
         panelPrincipal = new JPanel();
         panelPrincipal.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -81,7 +80,7 @@ public class Principal extends JFrame {
 
         btnAdd = new JButton("");
         btnAdd.setToolTipText("Agregar un gasto");
-        btnAdd.setIcon(new ImageIcon("C:/Users/Cristobal/Documents/NetBeansProjects/AGU/imagenes/add.png"));
+        btnAdd.setIcon(new ImageIcon("imagenes\\add.png"));
         btnAdd.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -93,12 +92,11 @@ public class Principal extends JFrame {
 
         btnDelete = new JButton("");
         btnDelete.setToolTipText("Borrar un gasto");
-        btnDelete.setIcon(new ImageIcon("C:/Users/Cristobal/Documents/NetBeansProjects/AGU/imagenes/delete.png"));
+        btnDelete.setIcon(new ImageIcon("imagenes\\delete.png"));
         btnDelete.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 borrarGasto();
-
             }
         });
         btnDelete.setBounds(618, 40, 50, 50);
@@ -106,7 +104,7 @@ public class Principal extends JFrame {
 
         btnClear = new JButton("");
         btnClear.setToolTipText("Limpiar la tabla");
-        btnClear.setIcon(new ImageIcon("C:/Users/Cristobal/Documents/NetBeansProjects/AGU/imagenes/clear.png"));
+        btnClear.setIcon(new ImageIcon("imagenes\\clear.png"));
         btnClear.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -118,7 +116,7 @@ public class Principal extends JFrame {
 
         btnGraph = new JButton("");
         btnGraph.setToolTipText("Grafico");
-        btnGraph.setIcon(new ImageIcon("C:/Users/Cristobal/Documents/NetBeansProjects/AGU/imagenes/graph.png"));
+        btnGraph.setIcon(new ImageIcon("imagenes\\graph.png"));
         btnGraph.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -153,7 +151,6 @@ public class Principal extends JFrame {
         setJMenuBar(menuBarra);
 
         tablaContenedora = new JScrollPane();
-
         tabla = new JTable() {
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -170,10 +167,14 @@ public class Principal extends JFrame {
         tablaContenedora.setBounds(10, 100, 800, 400);
         panelPrincipal.add(tablaContenedora);
 
-        this.setSize(835, 570);
-        this.setLocation(250, 20);
-        this.setVisible(true);
+        btnAdd.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btnDelete.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btnClear.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btnGraph.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
 
+        this.setSize(835, 570);
+        this.setLocationRelativeTo(null);
+        this.setVisible(true);
     }
 
     public void leerArchivo() {
@@ -195,14 +196,12 @@ public class Principal extends JFrame {
     }
 
     public void setTabla(String[][] tablaGastos) {
-
         this.tabla.setModel(new DefaultTableModel(
                 tablaGastos,
                 new String[]{
                     "Gasto", "Descripcion", "Tipo de pago", "Categoria", "Fecha"
                 }
         ));
-
         tablaContenedora.setViewportView(tabla);
         tablaContenedora.setBounds(10, 100, 800, 400);
         panelPrincipal.add(tablaContenedora);
@@ -221,28 +220,64 @@ public class Principal extends JFrame {
         return MatrizAgregar;
     }
 
+    public void totalGastado() {
+        if (pr.cantidadRegistro() >= 0) {
+            int cont = 0;
+            for (int i = 0; i < pr.cantidadRegistro(); i++) {
+                g = pr.obtenerRegistro(i);
+                int a = Integer.parseInt(String.valueOf(g.getgGasto()));
+                cont = cont + a;
+            }
+            txtGastoTotal.setText(String.valueOf(cont));
+        } else {
+            txtGastoTotal.setText("0");
+        }
+    }
+
     public void agregarGasto() {
         this.dispose();
         AgregarGasto ag = new AgregarGasto();
     }
 
-    public void borrarGasto() {//Falta que elimine la linea del txt//<-----------------------------------------------
-
+    public void borrarGasto() {
         int fila = tabla.getSelectedRow();
         if (fila != -1) {
             pr.eliminarRegistro(fila);
-
         } else {
             JOptionPane.showMessageDialog(null, "Seleccione una fila primero");
         }
-
+        borrarDatoDelTxt();
         setTabla(agregarLista());
-        
+        totalGastado();
 
     }
 
-    public void borrarTabla() {//Falta por hacer//<-----------------------------------------------
+    public void borrarDatoDelTxt() {
+        f.delete();
+        f = new File("gasto.txt");
+        FileWriter fw;
+        PrintWriter pw;
+        try {
+            fw = new FileWriter(f, false);
+            pw = new PrintWriter(fw);
+            for (int i = 0; i < pr.cantidadRegistro(); i++) {
+                g = pr.obtenerRegistro(i);
+                pw.println(String.valueOf(g.getgGasto() + "%" + g.getgDescripcion() + "%" + g.getgTipoDePago() + "%" + g.getgCategoria() + "%" + g.getgFecha()));
+            }
+            pw.close();
+        } catch (Exception ex) {
+            System.out.println(ex);
+        }
+    }
 
+    public void borrarTabla() {
+        int cant = pr.cantidadRegistro();
+        for (int i = 0; i < cant; i++) {
+            pr.eliminarRegistro(0);
+        }
+        f.delete();
+        setTabla(agregarLista());
+        totalGastado();
     }
 
     public void graficoGasto() {//Falta por hacer//<-----------------------------------------------
