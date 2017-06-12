@@ -28,7 +28,6 @@ public class Principal extends JFrame {
 
     private Gasto g;
     private Proceso pr;
-    private AgregarGasto ag;
     private File f;
     private JPanel panelPrincipal;
     private JLabel lblGastoTotal;
@@ -108,7 +107,7 @@ public class Principal extends JFrame {
         btnClear.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                borrarTabla();
+                limpiarTabla();
             }
         });
         btnClear.setBounds(688, 40, 50, 50);
@@ -220,6 +219,11 @@ public class Principal extends JFrame {
         return MatrizAgregar;
     }
 
+    public void agregarGasto() {
+        this.dispose();
+        AgregarGasto ag = new AgregarGasto();
+    }
+
     public void totalGastado() {
         if (pr.cantidadRegistro() >= 0) {
             int cont = 0;
@@ -234,11 +238,6 @@ public class Principal extends JFrame {
         }
     }
 
-    public void agregarGasto() {
-        this.dispose();
-        AgregarGasto ag = new AgregarGasto();
-    }
-
     public void borrarGasto() {
         int fila = tabla.getSelectedRow();
         if (fila != -1) {
@@ -246,13 +245,13 @@ public class Principal extends JFrame {
         } else {
             JOptionPane.showMessageDialog(null, "Seleccione una fila primero");
         }
-        borrarDatoDelTxt();
+        borrarGastoTxt();
         setTabla(agregarLista());
         totalGastado();
 
     }
 
-    public void borrarDatoDelTxt() {
+    public void borrarGastoTxt() {
         f.delete();
         f = new File("gasto.txt");
         FileWriter fw;
@@ -270,7 +269,7 @@ public class Principal extends JFrame {
         }
     }
 
-    public void borrarTabla() {
+    public void limpiarTabla() {
         int cant = pr.cantidadRegistro();
         for (int i = 0; i < cant; i++) {
             pr.eliminarRegistro(0);
